@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Perfil - Rede de Apoio Materno</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: linear-gradient(to right, #f5ebe0, #e6ccb2);
+            color: #4a3c31;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 560px;
+        }
+
+        .voltar {
+            display: inline-block;
+            margin-bottom: 18px;
+            font-size: 13px;
+            color: #7f5539;
+            font-weight: bold;
+        }
+
+        .voltar:hover {
+            color: #9c6644;
+        }
+
+        .cartao {
+            background-color: #fffaf6;
+            border-radius: 12px;
+            box-shadow: 0 0 25px rgba(0, 0, 0, 0.15);
+            padding: 40px;
+        }
+
+        .cabecalho-perfil {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 30px;
+        }
+
+        .avatar-grande {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: #e6ccb2;
+            color: #7f5539;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .cabecalho-perfil h2 {
+            color: #7f5539;
+            font-size: 20px;
+        }
+
+        .cabecalho-perfil p {
+            font-size: 13px;
+            color: #6b5744;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            margin-top: 14px;
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        input,
+        select {
+            padding: 10px;
+            margin-top: 6px;
+            border: 1px solid #d9c5b2;
+            border-radius: 5px;
+            background-color: #f5ebe0;
+            color: #4a3c31;
+            font-size: 14px;
+        }
+
+        input:disabled {
+            opacity: 0.6;
+        }
+
+        .ajuda {
+            font-size: 11px;
+            color: #6b5744;
+            font-weight: normal;
+            margin-top: 4px;
+        }
+
+        input[type="submit"] {
+            background-color: #7f5539;
+            color: #fff;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 26px;
+            border: none;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #9c6644;
+        }
+
+        .mensagem {
+            margin-top: 14px;
+            font-size: 13px;
+            text-align: center;
+            display: none;
+        }
+
+        .mensagem.sucesso {
+            color: #2f5233;
+        }
+
+        .mensagem.erro {
+            color: #a4442c;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <a href="/dashboard" class="voltar">← Voltar ao painel</a>
+
+        <div class="cartao">
+            <div class="cabecalho-perfil">
+                <div class="avatar-grande" id="avatarGrande">?</div>
+                <div>
+                    <h2 id="nomeCabecalho">Meu perfil</h2>
+                    <p id="emailCabecalho">Carregando...</p>
+                </div>
+            </div>
+
+            <form id="formPerfil">
+                <label for="nome">Nome completo</label>
+                <input type="text" id="nome" name="Nome" required>
+
+                <label for="telefone">Telefone</label>
+                <input type="tel" id="telefone" name="Telefone" placeholder="(XX) XXXXX-XXXX">
+
+                <label for="fase">Fase</label>
+                <select id="fase" name="Fase">
+                    <option value="gestante">Gestante</option>
+                    <option value="puerpera">Puérpera</option>
+                </select>
+
+                <label for="semanas">Semanas de gestação</label>
+                <input type="number" id="semanas" name="SemanasGestacao" min="0" max="42">
+                <span class="ajuda">Se você já não estiver mais gestante, pode deixar em branco.</span>
+
+                <input type="submit" value="Salvar alterações">
+
+                <p class="mensagem sucesso" id="mensagemSucesso">Perfil atualizado com sucesso!</p>
+                <p class="mensagem erro" id="mensagemErro">Não foi possível salvar. Tente novamente.</p>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // ---------- Carrega os dados atuais do usuário ----------
+        fetch("/cliente/me")
+            .then(function (resposta) {
+                if (!resposta.ok) throw new Error("Não autenticado");
+                return resposta.json();
+            })
+            .then(function (usuario) {
+                document.getElementById("nome").value = usuario.Nome || "";
+                document.getElementById("telefone").value = usuario.Telefone || "";
+                document.getElementById("fase").value = usuario.Fase || "gestante";
+                document.getElementById("semanas").value = usuario.SemanasGestacao || "";
+
+                document.getElementById("nomeCabecalho").textContent = usuario.Nome || "Meu perfil";
+                document.getElementById("emailCabecalho").textContent = usuario.Email || "";
+                document.getElementById("avatarGrande").textContent =
+                    (usuario.Nome || "?").charAt(0).toUpperCase();
+            })
+            .catch(function () {
+                window.location.href = "/login";
+            });
+
+        // ---------- Envia as alterações ----------
+        document.getElementById("formPerfil").addEventListener("submit", function (evento) {
+            evento.preventDefault();
+
+            const dados = {
+                Nome: document.getElementById("nome").value,
+                Telefone: document.getElementById("telefone").value,
+                Fase: document.getElementById("fase").value,
+                SemanasGestacao: document.getElementById("semanas").value
+            };
+
+            fetch("/cliente/perfil", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(dados)
+            })
+                .then(function (resposta) { return resposta.json(); })
+                .then(function () {
+                    document.getElementById("mensagemErro").style.display = "none";
+                    document.getElementById("mensagemSucesso").style.display = "block";
+                })
+                .catch(function () {
+                    document.getElementById("mensagemSucesso").style.display = "none";
+                    document.getElementById("mensagemErro").style.display = "block";
+                });
+        });
+    </script>
+</body>
+
+</html>

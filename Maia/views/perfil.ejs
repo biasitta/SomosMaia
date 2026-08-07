@@ -1,0 +1,106 @@
+  <!DOCTYPE html>
+  <html lang="pt-BR">
+  <head>
+  <meta charset="UTF-8">
+  <title>Perfil - Rede de Apoio Materno</title>
+  <style>
+
+      body {
+
+        margin: 0;
+
+        font-family: "Segoe UI", Arial, sans-serif;
+
+        background: linear-gradient(to right, #f5ebe0, #e6ccb2);
+
+        color: #4a3c31;
+
+      }
+
+      header {
+
+        background-color: #7f5539;
+
+        color: #fff;
+
+        padding: 20px;
+
+        text-align: center;
+
+      }
+
+      .container {
+
+        max-width: 800px;
+
+        margin: 30px auto;
+
+        background: #fffaf6;
+
+        border-radius: 10px;
+
+        padding: 20px;
+
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+
+      }
+
+      h2 { color: #7f5539; }
+
+      label { display: block; margin-top: 10px; }
+
+      input { width: 100%; padding: 8px; margin-top: 5px; }
+
+      button {
+
+        margin-top: 15px;
+
+        background: #7f5539;
+
+        color: #fff;
+
+        border: none;
+
+        padding: 10px 15px;
+
+        cursor: pointer;
+
+        border-radius: 5px;
+
+      }
+
+      button:hover { background: #9c6644; }
+  </style>
+  </head>
+  <body>
+  <header>
+  <h1>Perfil da Mãe</h1>
+  </header>
+  
+    <div class="container">
+  <h2>Seus Dados</h2>
+  <form action="/cliente/atualizarPerfil" method="POST">
+  <label>Nome</label>
+  <input type="text" name="Nome" value="<%= usuario.Nome %>">
+  
+        <label>Email</label>
+  <input type="text" value="<%= usuario.Email %>" disabled>
+  
+        <label>Telefone</label>
+  <input type="text" name="Telefone" value="<%= usuario.Telefone %>">
+  
+        <label>Fase</label>
+  <input type="text" name="Fase" value="<%= usuario.Fase %>">
+  
+        <label>Semanas de Gestação</label>
+  <input type="number" name="SemanasGestacao" value="<%= usuario.SemanasGestacao %>">
+  
+        <p><strong>Status de risco:</strong> <%= usuario.StatusRisco %></p>
+  
+        <button type="submit">Salvar alterações</button>
+  </form>
+  </div>
+  </body>
+  </html>
+
+  
