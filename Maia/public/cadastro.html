@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Cadastro - Rede de Apoio Materno</title>
+    <link rel="stylesheet" href="./style/cadastro.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="header-side" style="display: flex; justify-content: center; align-items: center;">
+                <img src="./img/usuario.png" class="user-icon" id="foto-cabecalho" alt="Perfil"
+                    style="width: 60px; height: 60px; object-fit: cover; border-radius: 50%; border: 3px solid #8B4513;">
+            </a>
+        </div>
+
+        <h2>Cadastro</h2>
+        <form method="POST" action="http://localhost:3000/cliente/cadastro">
+            <!-- Nome -->
+            <label for="nome">Nome completo</label>
+            <input type="text" id="nome" name="Nome" required>
+
+            <!-- Email -->
+            <label for="email">E-mail</label>
+            <input type="email" id="email" name="Email" required>
+
+            <!-- Senha com olho -->
+            <label for="senha">Senha</label>
+            <div class="senha-container">
+                <input type="password" id="senha" name="Senha" required>
+                <span onclick="toggleSenha()" id="toggleIcon">👁️</span>
+            </div>
+
+            <!-- Data de nascimento -->
+            <label for="data">Data de nascimento</label>
+            <input type="date" id="data" name="DataNascimento" required>
+
+            <!-- Fase -->
+            <label for="fase">Fase</label>
+            <select id="fase" name="Fase" required>
+                <option value="">Selecione...</option>
+                <option value="gestante">Gestante</option>
+                <option value="puerpera">Puérpera</option>
+            </select>
+
+            <!-- Semanas de gestação -->
+            <label for="semanas">Semanas de gestação</label>
+            <input type="number" id="semanas" name="SemanasGestacao" min="0" max="42">
+
+            <!-- Telefone -->
+            <label for="telefone">Telefone</label>
+            <input type="tel" id="telefone" name="Telefone" placeholder="(XX) XXXXX-XXXX" required>
+
+            <!-- Checkbox termos -->
+            <label class="checkbox-label">
+                <input type="checkbox" id="termos" required>
+                Aceito os <a href="https://www.seusite.com/termos" target="_blank">Termos de uso</a>
+            </label>
+
+            <!-- Botão -->
+            <input type="submit" value="Cadastrar">
+        </form>
+
+        <p style="text-align:center; margin-top:15px;">Já tem conta? <a href="/login"
+                style="color:#7f5539; font-weight:bold;">Entrar</a></p>
+
+        <footer>
+            © 2026 Maia - Todos os direitos reservados
+        </footer>
+    </div>
+
+    
+</body>
+<script src="./js/"></script>
+
+   <!-- libras -->
+<div vw class="enabled">
+        <div vw-access-button class="active"></div>
+        <div vw-plugin-wrapper>
+            <div class="vw-plugin-top-wrapper"></div>
+        </div>
+    </div>
+    <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
+    <script>new window.VLibras.Widget('https://vlibras.gov.br/app');</script>
+
+    </html>
