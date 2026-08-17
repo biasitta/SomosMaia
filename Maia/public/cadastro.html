@@ -1,112 +1,27 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
-    <title>Cadastro - Rede de Apoio Materno</title>
-    <style>
-        body {
-            margin: 0;
-            font-family: "Segoe UI", Arial, sans-serif;
-            background: linear-gradient(to right, #f5ebe0, #e6ccb2);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            color: #4a3c31;
-        }
-
-        .container {
-            width: 90%;
-            max-width: 600px;
-            background-color: #fffaf6;
-            border-radius: 12px;
-            box-shadow: 0 0 25px rgba(0,0,0,0.2);
-            padding: 40px;
-        }
-
-        h2 {
-            text-align: center;
-            color: #7f5539;
-            margin-bottom: 20px;
-        }
-
-        form {
-            display: flex;
-            flex-direction: column;
-        }
-
-        label {
-            margin-top: 10px;
-            font-weight: bold;
-        }
-
-        input, select {
-            padding: 10px;
-            margin-top: 5px;
-            border: 1px solid #d9c5b2;
-            border-radius: 5px;
-            background-color: #f5ebe0;
-            color: #4a3c31;
-        }
-
-        /* Campo de senha com ícone */
-        .senha-container {
-            position: relative;
-            display: flex;
-            align-items: center;
-        }
-
-        .senha-container input {
-            flex: 1;
-            padding-right: 40px; /* espaço para o ícone */
-        }
-
-        .senha-container span {
-            position: absolute;
-            right: 10px;
-            cursor: pointer;
-            font-size: 18px;
-            color: #7f5539;
-        }
-
-        input[type="submit"] {
-            background-color: #7f5539;
-            color: #fff;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 20px;
-        }
-
-        input[type="submit"]:hover {
-            background-color: #9c6644;
-        }
-
-        .checkbox-label {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            margin-top: 15px;
-        }
-
-        .checkbox-label a {
-            color: #7f5539;
-            text-decoration: none;
-        }
-
-        .checkbox-label a:hover {
-            color: #9c6644;
-        }
-
-        footer {
-            text-align: center;
-            font-size: 12px;
-            color: #7f5539;
-            margin-top: 20px;
-        }
-    </style>
+    <title>Cadastro - Maia</title>
+    <link rel="stylesheet" href="./style/cadastro.css">
 </head>
+
 <body>
     <div class="container">
+       <!-- Área da Foto do Perfil com ícone de Câmera -->
+        <div class="header-side" style="display: flex; justify-content: center; align-items: center; margin-bottom: 15px;">
+            <label for="input-foto" style="cursor: pointer; position: relative; display: inline-block;">
+                <img src="./img/perfil.jpg" class="user-icon" id="foto-cabecalho" alt="Perfil"
+                    style="width: 80px; height: 80px; object-fit: cover; border-radius: 50%; border: 3px solid #8B4513; display: block;">
+                <!-- Ícone da câmera sobreposto -->
+                <span style="position: absolute; bottom: 0; right: 0; background: #8B4513; color: white; border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; font-size: 13px; border: 2px solid white;">📷</span>
+            </label>
+
+            <!-- Campo oculto para seleção de imagem do arquivo -->
+            <input type="file" id="input-foto" name="Foto" accept="image/*" style="display: none;" onchange="previewFoto(event)">
+        </div>
+
         <h2>Cadastro</h2>
         <form method="POST" action="http://localhost:3000/cliente/cadastro">
             <!-- Nome -->
@@ -146,33 +61,72 @@
 
             <!-- Checkbox termos -->
             <label class="checkbox-label">
-                <input type="checkbox" id="termos" required>
-                Aceito os <a href="https://www.seusite.com/termos" target="_blank">termos de uso</a>
+                <input type="checkbox" id="termos" name="Termos" required>
+                Aceito os <a href="https://www.seusite.com/termos" target="_blank">Termos de uso</a>
             </label>
 
             <!-- Botão -->
             <input type="submit" value="Cadastrar">
         </form>
 
-        <p style="text-align:center; margin-top:15px;">Já tem conta? <a href="/login" style="color:#7f5539; font-weight:bold;">Entrar</a></p>
+        <p style="text-align:center; margin-top:15px;">
+            Já tem conta? <a href="/login" style="color:#7f5539; font-weight:bold;">Entrar</a>
+        </p>
 
         <footer>
-            © 2026 Rede de Apoio Materno - Todos os direitos reservados
+            © 2026 Maia - Todos os direitos reservados
         </footer>
     </div>
 
-    <script>
-        function toggleSenha() {
-            const campoSenha = document.getElementById("senha");
-            const icon = document.getElementById("toggleIcon");
-            if (campoSenha.type === "password") {
-                campoSenha.type = "text"; // mostra a senha
-                icon.textContent = "🙈"; // muda ícone para "ocultar"
-            } else {
-                campoSenha.type = "password"; // oculta a senha
-                icon.textContent = "👁️"; // volta ícone para "mostrar"
+   <script>
+        // Função para pré-visualizar a foto quando a usuária seleciona um arquivo local
+        function previewFoto(event) {
+            const input = event.target;
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    document.getElementById("foto-cabecalho").src = e.target.result;
+                };
+                reader.readAsDataURL(input.files[0]);
             }
         }
+
+        // Alternar visibilidade da senha
+        function toggleSenha() {
+            const senhaInput = document.getElementById("senha");
+            const toggleIcon = document.getElementById("toggleIcon");
+            if (senhaInput.type === "password") {
+                senhaInput.type = "text";
+                toggleIcon.textContent = "🙈";
+            } else {
+                senhaInput.type = "password";
+                toggleIcon.textContent = "👁️";
+            }
+        }
+
+        // Preenche Nome, E-mail e Foto caso venham da URL (Login do Google)
+        window.addEventListener("DOMContentLoaded", () => {
+            const params = new URLSearchParams(window.location.search);
+            const nomeParam = params.get("nome");
+            const emailParam = params.get("email");
+            const fotoParam = params.get("foto");
+
+            if (nomeParam) document.getElementById("nome").value = nomeParam;
+            if (emailParam) document.getElementById("email").value = emailParam;
+            if (fotoParam) document.getElementById("foto-cabecalho").src = fotoParam;
+        });
     </script>
+
+    <script src="./js/"></script>
+
+    <!-- Libras -->
+    <div vw class="enabled">
+        <div vw-access-button class="active"></div>
+        <div vw-plugin-wrapper>
+            <div class="vw-plugin-top-wrapper"></div>
+        </div>
+    </div>
+    <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
+    <script>new window.VLibras.Widget('https://vlibras.gov.br/app');</script>
 </body>
 </html>

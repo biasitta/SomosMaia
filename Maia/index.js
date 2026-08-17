@@ -1,108 +1,79 @@
 const express = require("express");
-
 const path = require("path");
-
 const session = require("express-session");
- 
+
+// Importação das rotas e do controller
 const rotasCliente = require("./api/clienteRotas");
-
 const clienteController = require("./controller/ClienteController");
- 
+
 const backend = express();
- 
+
+// ===================== Middlewares =====================
 backend.use(express.json());
-
 backend.use(express.urlencoded({ extended: true }));
- 
-backend.use(session({
 
-  secret: "troque-esta-chave-em-producao",
+// Configuração da Sessão
+backend.use(
+  session({
+    secret: "troque-esta-chave-em-producao",
+    resave: false,
+    saveUninitialized: false,
+    cookie: { maxAge: 1000 * 60 * 60 * 4 } // 4 horas de sessão
+  })
+);
 
-  resave: false,
-
-  saveUninitialized: false,
-
-  cookie: { maxAge: 1000 * 60 * 60 * 4 }
-
-}));
- 
-// Configuração do EJS
-
-backend.set("view engine", "ejs");
-
-backend.set("views", path.join(__dirname, "views"));
- 
-// Arquivos públicos (CSS, imagens, JS)
-
+// Arquivos públicos (CSS, imagens, JS do front e páginas HTML)
 backend.use(express.static(path.join(__dirname, "public")));
- 
-// Rotas de cliente
 
-backend.use("/cliente", rotasCliente);
- 
-// Middleware de login
-
+// Middleware de proteção (exige login)
 function exigirLogin(req, res, next) {
-
   if (req.session && req.session.usuarioEmail) {
-
     return next();
-
   }
-
   return res.redirect("/login");
-
 }
- 
-// ===================== Páginas públicas =====================
 
+// ===================== Rotas da API de Clientes =====================
+backend.use("/cliente", rotasCliente);
+
+// ===================== Páginas Públicas =====================
 backend.get("/", (req, res) => {
-
   res.sendFile(path.join(__dirname, "public", "index.html"));
-
 });
- 
+
 backend.get("/login", (req, res) => {
-
   res.sendFile(path.join(__dirname, "public", "login.html"));
-
 });
- 
+
 backend.get("/cadastro", (req, res) => {
-
   res.sendFile(path.join(__dirname, "public", "cadastro.html"));
-
 });
- 
-// ===================== Páginas que exigem login =====================
 
+// ===================== Páginas Protegidas =====================
 backend.get("/dashboard", exigirLogin, (req, res) => {
-
-  // Renderiza dashboard.ejs dentro de views
-
-  res.render("dashboard", { usuarioEmail: req.session.usuarioEmail });
-
+  res.sendFile(path.join(__dirname, "public", "dashboard.html"));
 });
- 
-backend.get("/perfil", exigirLogin, clienteController.paginaPerfil);
- 
-// Páginas em construção
 
-const paginasEmConstrucao = ["/diario", "/agendamento", "/rede-apoio", "/profissionais", "/telemedicina"];
+backend.get("/perfil", exigirLogin, (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "perfil.html"));
+});
+
+// Páginas em construção
+const paginasEmConstrucao = [
+  "/diario",
+  "/agendamento",
+  "/rede-apoio",
+  "/profissionais",
+  "/telemedicina"
+];
 
 paginasEmConstrucao.forEach((rota) => {
-
   backend.get(rota, exigirLogin, (req, res) => {
-
-    res.render("em-construcao");
-
+    res.send("<h2>Página em construção 🛠️</h2>");
   });
-
 });
- 
+
+// ===================== Inicialização =====================
 backend.listen(3000, () => {
-
-  console.log("Servidor rodando em http://localhost:3000");
-
+  console.log("🚀 Servidor rodando em http://localhost:3000");
 });
- 

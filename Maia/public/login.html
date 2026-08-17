@@ -3,7 +3,10 @@
 
 <head>
     <meta charset="UTF-8"> <!-- Garante suporte a acentos e caracteres especiais -->
-    <title>Login - Rede de Apoio Materno</title> <!-- Título da aba do navegador -->
+    <title>Login - Maia</title> <!-- Título da aba do navegador -->
+
+    <!-- Script oficial do Google Sign-In -->
+    <script src="https://accounts.google.com/gsi/client" async></script>
 
     <style>
         /* Reset básico para incluir padding/borda no cálculo do tamanho */
@@ -15,50 +18,36 @@
         body {
             margin: 0;
             font-family: "Segoe UI", Arial, sans-serif;
-            /* Fonte padrão */
             background: linear-gradient(to right, #f5ebe0, #e6ccb2);
-            /* Fundo em degradê */
             display: flex;
-            /* Flexbox para centralizar */
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            /* Ocupa altura total da tela */
             color: #4a3c31;
-            /* Cor padrão do texto */
         }
 
         /* Container principal que envolve os dois painéis */
         .container {
             display: flex;
             flex-wrap: wrap;
-            /* Permite quebra em telas menores */
             width: 90%;
             max-width: 1000px;
             background-color: #fffaf6;
-            /* Fundo claro */
             border-radius: 12px;
-            /* Bordas arredondadas */
             box-shadow: 0 0 25px rgba(0, 0, 0, 0.2);
-            /* Sombra */
             overflow: hidden;
-            /* Evita conteúdo ultrapassar borda */
         }
 
         /* Painel esquerdo com mensagem de boas-vindas */
         .left-panel {
             flex: 1;
-            /* Ocupa metade do espaço */
             min-width: 300px;
             background-color: #7f5539;
-            /* Fundo marrom */
             color: #fff;
-            /* Texto branco */
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: flex-start;
-            /* Alinha à esquerda */
             padding: 50px;
         }
 
@@ -71,7 +60,6 @@
             font-size: 15px;
             max-width: 350px;
             line-height: 1.5;
-            /* Espaçamento entre linhas */
         }
 
         /* Painel direito com formulário de login */
@@ -121,7 +109,6 @@
             font-weight: bold;
             cursor: pointer;
             transition: background-color 0.3s;
-            /* Efeito suave */
         }
 
         /* Efeito hover no botão */
@@ -129,11 +116,17 @@
             background-color: #9c6644;
         }
 
+        /* Área do Botão do Google */
+        .google-btn-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 15px;
+        }
+
         /* Área de opções (checkbox + link) */
         .options {
             display: flex;
             justify-content: space-between;
-            /* Um à esquerda, outro à direita */
             font-size: 13px;
             margin: 10px 0;
             align-items: center;
@@ -144,20 +137,20 @@
             display: flex;
             align-items: center;
             gap: 6px;
-            /* Espaço entre checkbox e texto */
             cursor: pointer;
             white-space: nowrap;
-            /* Impede quebra de linha */
         }
 
         /* Links */
         .options a {
             color: #7f5539;
             text-decoration: none;
+            cursor: pointer;
         }
 
         .options a:hover {
             color: #9c6644;
+            text-decoration: underline;
         }
 
         /* Área social */
@@ -190,7 +183,6 @@
         @media (max-width: 768px) {
             .container {
                 flex-direction: column;
-                /* Empilha os painéis */
             }
 
             .left-panel,
@@ -226,7 +218,7 @@
                 <h2>Login</h2>
 
                 <!-- Formulário de login -->
-                <form method="POST" action="http://localhost:3000/cliente/login">
+                <form method="POST" action="/cliente/login">
                     <input type="email" name="Email" placeholder="Endereço de e-mail" required>
                     <input type="password" name="Senha" placeholder="Senha" required>
 
@@ -235,12 +227,33 @@
                         <label class="checkbox-label">
                             <input type="checkbox" id="lembrar"> Lembrar-me
                         </label>
-                        <a href="#">Esqueceu a senha?</a>
+                        <!-- BOTÃO ESQUECEU A SENHA CORRIGIDO -->
+                        <a href="#" onclick="esqueciMinhaSenha(event)">Esqueceu a senha?</a>
                     </div>
 
                     <!-- Botão de envio -->
                     <input type="submit" value="Entrar">
                 </form>
+
+                <!-- Botão do Google -->
+                <div class="google-btn-container">
+                    <div id="g_id_onload"
+                        data-client_id="910310455755-ecuctmqtfutt440jbjebr97jdj1pgkk5.apps.googleusercontent.com"
+                        data-context="signin"
+                        data-ux_mode="popup"
+                        data-callback="lidarComRespostaGoogle"
+                        data-auto_prompt="false">
+                    </div>
+
+                    <div class="g_id_signin"
+                        data-type="standard"
+                        data-shape="rectangular"
+                        data-theme="outline"
+                        data-text="continue_with"
+                        data-size="large"
+                        data-logo_alignment="center">
+                    </div>
+                </div>
 
                 <!-- Link para cadastro -->
                 <p style="margin-top:15px;">Não possui conta? <a href="/cadastro">Cadastre-se</a></p>
@@ -248,9 +261,8 @@
                 <!-- Redes sociais -->
                 <div class="social">
                     <span>Siga:</span>
-                    <a href="https://www.instagram.com/mmaiabrasil/" target="_blank">Instagram</a>
+                    <a href="https://www.instagram.com/mmaiabrasil/" target="_blank">@mmaiabrasil</a>
                 </div>
-
 
                 <!-- Rodapé -->
                 <footer>
@@ -260,35 +272,116 @@
         </div>
     </div>
 
-    <!-- Adicione este script antes de fechar o  -->
-<script>
-    // Quando a página carregar, verifica se há email salvo
-    window.onload = function () {
-        const savedEmail = localStorage.getItem("email");
-        const savedCheck = localStorage.getItem("lembrar");
+    <!-- Scripts da página -->
+    <script>
+        // Função para tratar a resposta do Google Sign-In
+        async function lidarComRespostaGoogle(response) {
+            try {
+                const res = await fetch("/cliente/google-auth", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ token: response.credential })
+                });
 
-        if (savedEmail && savedCheck === "true") {
-            document.querySelector('input[name="Email"]').value = savedEmail;
-            document.getElementById("lembrar").checked = true;
+                const data = await res.json();
+
+                if (data.ok) {
+                    if (data.cadastrado) {
+                        // Usuário já tem conta -> vai pro Dashboard
+                        window.location.href = data.redirect;
+                    } else {
+                        // Usuário NOVO -> vai pro Cadastro
+                        const query = `?nome=${encodeURIComponent(data.nome)}&email=${encodeURIComponent(data.email)}&foto=${encodeURIComponent(data.foto || '')}`;
+                        window.location.href = data.redirect + query;
+                    }
+                } else {
+                    alert(data.erro || "Erro ao verificar com o Google.");
+                }
+            } catch (erro) {
+                console.error("Erro no login Google:", erro);
+                alert("Erro ao conectar com o servidor.");
+            }
         }
-    };
 
-    // Captura o envio do formulário
-    document.querySelector("form").addEventListener("submit", function () {
-        const email = document.querySelector('input[name="Email"]').value;
-        const lembrar = document.getElementById("lembrar").checked;
+        // Quando a página carregar, verifica se há email salvo pelo "Lembrar-me"
+        window.onload = function () {
+            const savedEmail = localStorage.getItem("email");
+            const savedCheck = localStorage.getItem("lembrar");
 
-        if (lembrar) {
-            // Salva no localStorage
-            localStorage.setItem("email", email);
-            localStorage.setItem("lembrar", "true");
-        } else {
-            // Remove se não estiver marcado
-            localStorage.removeItem("email");
-            localStorage.removeItem("lembrar");
+            if (savedEmail && savedCheck === "true") {
+                document.querySelector('input[name="Email"]').value = savedEmail;
+                document.getElementById("lembrar").checked = true;
+            }
+        };
+
+        // Captura o envio do formulário tradicional
+        document.querySelector("form").addEventListener("submit", function () {
+            const email = document.querySelector('input[name="Email"]').value;
+            const lembrar = document.getElementById("lembrar").checked;
+
+            if (lembrar) {
+                localStorage.setItem("email", email);
+                localStorage.setItem("lembrar", "true");
+            } else {
+                localStorage.removeItem("email");
+                localStorage.removeItem("lembrar");
+            }
+        });
+
+        // ===================== FUNÇÃO ESQUECI MINHA SENHA =====================
+        async function esqueciMinhaSenha(e) {
+            if (e) e.preventDefault();
+
+            // Pega o e-mail do campo do formulário se a pessoa já tiver digitado
+            const emailInput = document.querySelector('input[name="Email"]').value;
+            const email = prompt("Digite seu e-mail cadastrado para redefinir a senha:", emailInput || "");
+
+            if (!email) return;
+
+            try {
+                // Step 1: Solicita o envio do código por e-mail
+                const res = await fetch("/cliente/esqueci-senha", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ Email: email })
+                });
+
+                const data = await res.json();
+
+                if (data.ok) {
+                    alert("Enviamos um código de verificação para o seu e-mail!");
+
+                    // Step 2: Pede o código enviado
+                    const codigo = prompt("Digite o código recebido no seu e-mail:");
+                    if (!codigo) return;
+
+                    // Step 3: Pede a nova senha
+                    const novaSenha = prompt("Digite a sua nova senha:");
+                    if (!novaSenha) return;
+
+                    // Step 4: Redefine a senha no servidor
+                    const resRedefinir = await fetch("/cliente/redefinir-senha", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ Email: email, Codigo: codigo, NovaSenha: novaSenha })
+                    });
+
+                    const dataRedefinir = await resRedefinir.json();
+                    
+                    if (dataRedefinir.ok) {
+                        alert(dataRedefinir.mensagem || "Senha alterada com sucesso! Você já pode entrar.");
+                    } else {
+                        alert(dataRedefinir.erro || "Não foi possível alterar a senha.");
+                    }
+                } else {
+                    alert(data.erro || "Não foi possível processar a solicitação.");
+                }
+            } catch (erro) {
+                console.error("Erro na recuperação de senha:", erro);
+                alert("Erro ao conectar com o servidor.");
+            }
         }
-    });
-</script>
+    </script>
 
 </body>
 
