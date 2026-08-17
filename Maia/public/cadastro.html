@@ -4,22 +4,26 @@
 <head>
     <meta charset="UTF-8">
     <title>Cadastro - Maia</title>
+    <link rel="icon" href="img/maiaFavicon.png" type="image/png">
     <link rel="stylesheet" href="./style/cadastro.css">
 </head>
 
 <body>
     <div class="container">
-       <!-- Área da Foto do Perfil com ícone de Câmera -->
-        <div class="header-side" style="display: flex; justify-content: center; align-items: center; margin-bottom: 15px;">
+        <!-- Área da Foto do Perfil com ícone de Câmera -->
+        <div class="header-side"
+            style="display: flex; justify-content: center; align-items: center; margin-bottom: 15px;">
             <label for="input-foto" style="cursor: pointer; position: relative; display: inline-block;">
                 <img src="./img/perfil.jpg" class="user-icon" id="foto-cabecalho" alt="Perfil"
                     style="width: 80px; height: 80px; object-fit: cover; border-radius: 50%; border: 3px solid #8B4513; display: block;">
                 <!-- Ícone da câmera sobreposto -->
-                <span style="position: absolute; bottom: 0; right: 0; background: #8B4513; color: white; border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; font-size: 13px; border: 2px solid white;">📷</span>
+                <span
+                    style="position: absolute; bottom: 0; right: 0; background: #8B4513; color: white; border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; font-size: 13px; border: 2px solid white;">📷</span>
             </label>
 
             <!-- Campo oculto para seleção de imagem do arquivo -->
-            <input type="file" id="input-foto" name="Foto" accept="image/*" style="display: none;" onchange="previewFoto(event)">
+            <input type="file" id="input-foto" name="Foto" accept="image/*" style="display: none;"
+                onchange="previewFoto(event)">
         </div>
 
         <h2>Cadastro</h2>
@@ -78,7 +82,7 @@
         </footer>
     </div>
 
-   <script>
+    <script>
         // Função para pré-visualizar a foto quando a usuária seleciona um arquivo local
         function previewFoto(event) {
             const input = event.target;
@@ -129,4 +133,5 @@
     <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
     <script>new window.VLibras.Widget('https://vlibras.gov.br/app');</script>
 </body>
+
 </html>

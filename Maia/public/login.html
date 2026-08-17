@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8"> <!-- Garante suporte a acentos e caracteres especiais -->
     <title>Login - Maia</title> <!-- Título da aba do navegador -->
+    <link rel="icon" href="img/maiaFavicon.png" type="image/png">
 
     <!-- Script oficial do Google Sign-In -->
     <script src="https://accounts.google.com/gsi/client" async></script>
@@ -239,19 +240,12 @@
                 <div class="google-btn-container">
                     <div id="g_id_onload"
                         data-client_id="910310455755-ecuctmqtfutt440jbjebr97jdj1pgkk5.apps.googleusercontent.com"
-                        data-context="signin"
-                        data-ux_mode="popup"
-                        data-callback="lidarComRespostaGoogle"
+                        data-context="signin" data-ux_mode="popup" data-callback="lidarComRespostaGoogle"
                         data-auto_prompt="false">
                     </div>
 
-                    <div class="g_id_signin"
-                        data-type="standard"
-                        data-shape="rectangular"
-                        data-theme="outline"
-                        data-text="continue_with"
-                        data-size="large"
-                        data-logo_alignment="center">
+                    <div class="g_id_signin" data-type="standard" data-shape="rectangular" data-theme="outline"
+                        data-text="continue_with" data-size="large" data-logo_alignment="center">
                     </div>
                 </div>
 
@@ -367,7 +361,7 @@
                     });
 
                     const dataRedefinir = await resRedefinir.json();
-                    
+
                     if (dataRedefinir.ok) {
                         alert(dataRedefinir.mensagem || "Senha alterada com sucesso! Você já pode entrar.");
                     } else {
