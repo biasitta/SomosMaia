@@ -2,11 +2,11 @@ const bcrypt = require("bcryptjs");
 const pool = require("../config/banco");
 const { OAuth2Client } = require("google-auth-library");
 const nodemailer = require("nodemailer");
-
+ 
 // --- CONFIGURAÇÕES DO GOOGLE E EMAIL ---
 const GOOGLE_CLIENT_ID = "910310455755-ecuctmqtfutt440jbjebr97jdj1pgkk5.apps.googleusercontent.com";
 const googleClient = new OAuth2Client(GOOGLE_CLIENT_ID);
-
+ 
 const EMAIL_SISTEMA = "central.equipemaia@gmail.com";
 const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -19,41 +19,41 @@ const transporter = nodemailer.createTransport({
     minVersion: "TLSv1.2"
   }
 });
-
+ 
 const emailStyle = `
-    font-family: sans-serif; 
-    color: #3b2a25; 
-    border: 1px solid #eee; 
-    padding: 25px; 
-    border-radius: 12px; 
-    max-width: 500px; 
-    margin: 0 auto; 
+    font-family: sans-serif;
+    color: #3b2a25;
+    border: 1px solid #eee;
+    padding: 25px;
+    border-radius: 12px;
+    max-width: 500px;
+    margin: 0 auto;
     background-color: #fdfdfd;
 `;
-
+ 
 // Controller de Usuário
-
+ 
 const usuarioController = {
-
+ 
   // ===================== Cadastro =====================
-
+ 
   cadastrar: async (req, res) => {
     try {
       const { Nome, Email, Senha, DataNascimento, Fase, SemanasGestacao, Telefone, Termos, Foto } = req.body;
-
+ 
       if (!Nome || !Email || !Senha) {
         return res.status(400).send("Nome, e-mail e senha são obrigatórios");
       }
-
+ 
       const [existentes] = await pool.execute("SELECT id_usuario FROM usuario WHERE email = ?", [Email]);
-
+ 
       if (existentes.length > 0) {
         return res.status(400).send("E-mail já cadastrado");
       }
-
+ 
       const senhaCriptografada = await bcrypt.hash(Senha, 10);
-      const codigoVerificacao = Math.floor(1000 + Math.random() * 9000);
-
+      const codigoVerificacao = Math.floor(100000 + Math.random() * 900000);
+ 
       await pool.execute(
         `INSERT INTO usuario
           (paciente_nome, email, senha, data_nascimento, fase, semanas_gestacao, paciente_telefone, termos_aceitos, codigo_verificacao, foto)
@@ -71,9 +71,9 @@ const usuarioController = {
           Foto || null
         ]
       );
-
+ 
       console.log(`🔑 CÓDIGO DE VERIFICAÇÃO GERADO PARA [${Email}]: ${codigoVerificacao}`);
-
+ 
       // Envia o e-mail de verificação
       try {
         await transporter.sendMail({
@@ -95,28 +95,31 @@ const usuarioController = {
       } catch (erroEmail) {
         console.error("⚠️ Falha ao enviar o e-mail pelo Nodemailer:", erroEmail.message);
       }
-
+ 
       // REDIRECIONA PARA A TELA DE CÓDIGO DE VERIFICAÇÃO
       return res.redirect(`/verificacao?email=${encodeURIComponent(Email)}`);
-
+ 
     } catch (erro) {
       console.error("Erro ao cadastrar usuário:", erro.message);
       return res.status(500).send("Erro ao cadastrar usuário");
     }
   },
-
+ 
   // ===================== Verificar Código de E-mail =====================
-
+ 
   verificarCodigo: async (req, res) => {
     try {
       const { email, codigoDigitado } = req.body;
-
+ 
       const [linhas] = await pool.execute(
         "SELECT * FROM usuario WHERE email = ? AND codigo_verificacao = ?",
         [email, codigoDigitado]
       );
-
+ 
       if (linhas.length > 0) {
+        // INICIA A SESSÃO AUTOMATICAMENTE
+        req.session.usuarioEmail = email;
+ 
         return res.json({ ok: true, mensagem: "E-mail verificado com sucesso!" });
       } else {
         return res.status(401).json({ ok: false, erro: "Código de verificação inválido!" });
@@ -126,19 +129,19 @@ const usuarioController = {
       return res.status(500).json({ ok: false, erro: "Erro ao verificar código." });
     }
   },
-
+ 
   // ===================== Autenticação com o Google =====================
-
+ 
   googleAuth: async (req, res) => {
     try {
       const { token } = req.body;
-
+ 
       if (!token) {
         return res.status(400).json({ erro: "Token do Google não enviado." });
       }
-
+ 
       let email, nome, foto;
-
+ 
       if (typeof token === 'string' && token.split('.').length === 3) {
         const ticket = await googleClient.verifyIdToken({
           idToken: token,
@@ -157,20 +160,17 @@ const usuarioController = {
         nome = payload.name;
         foto = payload.picture;
       }
-
-      // Verifica se o e-mail JÁ EXISTE no banco de dados
+ 
       const [linhas] = await pool.execute("SELECT * FROM usuario WHERE email = ?", [email]);
-
+ 
       if (linhas.length > 0) {
-        // Usuária JÁ CADASTRADA -> Loga e envia para o Dashboard
         req.session.usuarioEmail = email;
-        return res.json({ 
-          ok: true, 
-          cadastrado: true, 
-          redirect: "/dashboard" 
+        return res.json({
+          ok: true,
+          cadastrado: true,
+          redirect: "/dashboard"
         });
       } else {
-        // NÃO CADASTRADA -> Retorna Nome, Email e Foto para preencher no formulário
         return res.json({
           ok: true,
           cadastrado: false,
@@ -180,57 +180,57 @@ const usuarioController = {
           foto: foto
         });
       }
-
+ 
     } catch (erro) {
       console.error("❌ Erro no Google Auth:", erro.message);
       return res.status(403).json({ erro: "Falha na autenticação do Google." });
     }
   },
-
+ 
   // ===================== Login =====================
-
+ 
   login: async (req, res) => {
     try {
       const { Email, Senha } = req.body;
-
+ 
       if (!Email || !Senha) {
         return res.status(400).send("E-mail e senha são obrigatórios");
       }
-
+ 
       const [linhas] = await pool.execute("SELECT * FROM usuario WHERE email = ?", [Email]);
-
+ 
       const usuario = linhas[0];
-
+ 
       if (!usuario) {
         return res.status(401).send("Credenciais inválidas");
       }
-
+ 
       const senhaCorreta = await bcrypt.compare(Senha, usuario.senha);
-
+ 
       if (!senhaCorreta) {
         return res.status(401).send("Credenciais inválidas");
       }
-
+ 
       req.session.usuarioEmail = usuario.email;
-
+ 
       return res.redirect("/dashboard");
-
+ 
     } catch (erro) {
       console.error("Erro ao fazer login:", erro.message);
       return res.status(500).send("Erro ao fazer login");
     }
   },
-
+ 
   // ===================== Logout =====================
-
+ 
   logout: (req, res) => {
     req.session.destroy(() => {
       return res.redirect("/");
     });
   },
-
+ 
   // ===================== Dados do usuário logado =====================
-
+ 
   meusDados: async (req, res) => {
     try {
       const [linhas] = await pool.execute(
@@ -240,21 +240,21 @@ const usuarioController = {
            FROM usuario WHERE email = ?`,
         [req.session.usuarioEmail]
       );
-
+ 
       const usuario = linhas[0];
-
+ 
       if (!usuario) return res.status(404).json({ erro: "Usuário não encontrado" });
-
+ 
       return res.json(usuario);
-
+ 
     } catch (erro) {
       console.error("Erro ao buscar dados do usuário:", erro.message);
       return res.status(500).json({ erro: "Erro ao buscar dados do usuário" });
     }
   },
-
+ 
   // ===================== Página de perfil (renderiza EJS) =====================
-
+ 
   paginaPerfil: async (req, res) => {
     try {
       const [linhas] = await pool.execute(
@@ -264,32 +264,30 @@ const usuarioController = {
            FROM usuario WHERE email = ?`,
         [req.session.usuarioEmail]
       );
-
+ 
       const usuario = linhas[0];
-
+ 
       if (!usuario) return res.redirect("/login");
-
+ 
       return res.render("perfil", { usuario });
-
+ 
     } catch (erro) {
       console.error("Erro ao carregar página de perfil:", erro.message);
       return res.status(500).send("Erro ao carregar perfil");
     }
   },
-
+ 
   // ===================== Atualizar perfil =====================
-
-  // ===================== Atualizar perfil =====================
-
+ 
   atualizarPerfil: async (req, res) => {
     try {
       const { Nome, Telefone, Fase, SemanasGestacao } = req.body;
       const emailUsuario = req.session.usuarioEmail;
-
+ 
       if (!emailUsuario) {
         return res.status(401).json({ ok: false, erro: "Sessão expirada. Faça login novamente." });
       }
-
+ 
       await pool.execute(
         `UPDATE usuario
            SET paciente_nome = COALESCE(?, paciente_nome),
@@ -305,39 +303,35 @@ const usuarioController = {
           emailUsuario
         ]
       );
-
-      // Responde com JSON informando sucesso
+ 
       return res.json({ ok: true, mensagem: "Perfil atualizado com sucesso!" });
-
+ 
     } catch (erro) {
       console.error("Erro ao atualizar perfil:", erro.message);
       return res.status(500).json({ ok: false, erro: "Erro interno ao atualizar perfil." });
     }
   },
-
+ 
   // ===================== Solicitar Recuperação de Senha =====================
-
+ 
   solicitarRecuperacaoSenha: async (req, res) => {
     try {
       const { Email } = req.body;
-
+ 
       if (!Email) {
         return res.status(400).json({ ok: false, erro: "E-mail é obrigatório." });
       }
-
+ 
       const [linhas] = await pool.execute("SELECT * FROM usuario WHERE email = ?", [Email]);
-
+ 
       if (linhas.length === 0) {
         return res.status(404).json({ ok: false, erro: "E-mail não cadastrado no sistema." });
       }
-
-      // Gera código de 6 dígitos
+ 
       const codigoRedefinicao = Math.floor(100000 + Math.random() * 900000).toString();
-
-      // Salva o código no banco de dados
+ 
       await pool.execute("UPDATE usuario SET codigo_verificacao = ? WHERE email = ?", [codigoRedefinicao, Email]);
-
-      // Envia o e-mail com o código
+ 
       await transporter.sendMail({
         from: `"Equipe Maia" <${EMAIL_SISTEMA}>`,
         to: Email,
@@ -354,51 +348,50 @@ const usuarioController = {
           </div>
         `
       });
-
+ 
       console.log(`🔑 CÓDIGO DE REDEFINIÇÃO ENVIADO PARA [${Email}]: ${codigoRedefinicao}`);
       return res.json({ ok: true, mensagem: "E-mail de redefinição enviado com sucesso!" });
-
+ 
     } catch (erro) {
       console.error("Erro ao solicitar recuperação de senha:", erro.message);
       return res.status(500).json({ ok: false, erro: "Erro ao processar solicitação." });
     }
   },
-
+ 
   // ===================== Redefinir Senha Com Código =====================
-
+ 
   redefinirSenha: async (req, res) => {
     try {
       const { Email, Codigo, NovaSenha } = req.body;
-
+ 
       if (!Email || !Codigo || !NovaSenha) {
         return res.status(400).json({ ok: false, erro: "Todos os campos são obrigatórios." });
       }
-
+ 
       const [linhas] = await pool.execute(
         "SELECT * FROM usuario WHERE email = ? AND codigo_verificacao = ?",
         [Email, Codigo]
       );
-
+ 
       if (linhas.length === 0) {
         return res.status(400).json({ ok: false, erro: "Código inválido ou expirado." });
       }
-
+ 
       const novaSenhaCriptografada = await bcrypt.hash(NovaSenha, 10);
-
-      // Atualiza a senha no banco e limpa o código
+ 
       await pool.execute(
         "UPDATE usuario SET senha = ?, codigo_verificacao = NULL WHERE email = ?",
         [novaSenhaCriptografada, Email]
       );
-
+ 
       return res.json({ ok: true, mensagem: "Senha alterada com sucesso! Você já pode fazer login." });
-
+ 
     } catch (erro) {
       console.error("Erro ao redefinir senha:", erro.message);
       return res.status(500).json({ ok: false, erro: "Erro ao redefinir senha." });
     }
   },
-
+ 
 };
-
+ 
 module.exports = usuarioController;
