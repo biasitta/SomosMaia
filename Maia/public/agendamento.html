@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agendamentos - Maia</title>
+    <link rel="icon" href="img/maiaFavicon.png" type="image/png">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: linear-gradient(to right, #f5ebe0, #e6ccb2);
+            color: #4a3c31;
+            min-height: 100vh;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        .app {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 240px;
+            flex-shrink: 0;
+            background-color: #7f5539;
+            color: #fff;
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar .logo {
+            font-size: 22px;
+            font-weight: bold;
+            color: #fff;
+            margin-bottom: 40px;
+        }
+
+        .sidebar .logo span {
+            color: #e6ccb2;
+        }
+
+        .sidebar nav {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-grow: 1;
+        }
+
+        .sidebar nav a {
+            color: #f5ebe0;
+            font-size: 14px;
+            padding: 11px 14px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: background-color 0.25s;
+        }
+
+        .sidebar nav a:hover,
+        .sidebar nav a.ativo {
+            background-color: rgba(255, 255, 255, 0.14);
+        }
+
+        /* Conteúdo Principal */
+        .conteudo {
+            flex-grow: 1;
+            padding: 30px 40px;
+            max-width: 1200px;
+        }
+
+        .titulo-pagina {
+            font-size: 24px;
+            color: #7f5539;
+            margin-bottom: 20px;
+        }
+
+        .grid-agendamento {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 24px;
+        }
+
+        .card {
+            background-color: #fffaf6;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            padding: 24px;
+        }
+
+        /* Cabeçalho com navegação do Calendário Completo */
+        .calendario-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .calendario-header h2 {
+            font-size: 18px;
+            color: #7f5539;
+        }
+
+        .btn-nav {
+            background-color: #f5ebe0;
+            border: 1px solid #e6ccb2;
+            color: #7f5539;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+
+        .btn-nav:hover {
+            background-color: #e6ccb2;
+        }
+
+        /* Grade do Calendário */
+        .calendario-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            text-align: center;
+        }
+
+        .dia-semana-cabecalho {
+            font-size: 12px;
+            font-weight: bold;
+            color: #9c6644;
+            padding-bottom: 6px;
+        }
+
+        .dia {
+            padding: 12px 0;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #4a3c31;
+            position: relative;
+            background-color: #fff;
+            border: 1px solid #f0e3d3;
+        }
+
+        .dia.invalido {
+            opacity: 0.35;
+            background-color: #f5f5f5;
+            cursor: not-allowed;
+        }
+
+        .dia.disponivel {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .dia.disponivel:hover {
+            background-color: #f5ebe0;
+            border-color: #b08968;
+        }
+
+        .dia.dia-focado {
+            background-color: #7f5539 !important;
+            color: #fff !important;
+            font-weight: bold;
+        }
+
+        .marcador-consulta {
+            width: 6px;
+            height: 6px;
+            background-color: #9c6644;
+            border-radius: 50%;
+            position: absolute;
+            bottom: 4px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .dia.dia-focado .marcador-consulta {
+            background-color: #fff;
+        }
+
+        /* Painel Lateral de Agendamento/Horários */
+        .painel-agenda h3 {
+            font-size: 16px;
+            color: #7f5539;
+            margin-bottom: 12px;
+        }
+
+        .horarios-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .btn-horario {
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid #e6ccb2;
+            background-color: #f5ebe0;
+            color: #4a3c31;
+            cursor: pointer;
+            font-size: 13px;
+            transition: 0.2s;
+        }
+
+        .btn-horario.disponivel:hover {
+            background-color: #e6ccb2;
+        }
+
+        .btn-horario.selecionado {
+            background-color: #7f5539;
+            color: #fff;
+            border-color: #7f5539;
+        }
+
+        .btn-horario.ocupado {
+            background-color: #e0e0e0;
+            color: #999;
+            text-decoration: line-through;
+            cursor: not-allowed;
+        }
+
+        /* Formulário */
+        .form-agendamento {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #f0e3d3;
+        }
+
+        .form-agendamento input,
+        .form-agendamento textarea {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #e6ccb2;
+            font-family: inherit;
+            font-size: 13px;
+        }
+
+        .btn-confirmar {
+            background-color: #7f5539;
+            color: #fff;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .btn-confirmar:hover {
+            background-color: #9c6644;
+        }
+
+        /* Mini cards de resumo das consultas */
+        .mini-card-resumo {
+            background-color: #f5ebe0;
+            border-left: 4px solid #7f5539;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            cursor: pointer;
+        }
+
+        .mini-card-resumo strong {
+            font-size: 13px;
+            color: #4a3c31;
+        }
+
+        .mini-card-resumo p {
+            font-size: 12px;
+            color: #6b5744;
+        }
+
+        @media (max-width: 850px) {
+            .grid-agendamento {
+                grid-template-columns: 1fr;
+            }
+
+            .app {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                flex-direction: row;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+        <aside class="sidebar">
+            <a href="/dashboard" class="logo">Ma<span>i</span>a</a>
+            <nav>
+                <a href="/dashboard">🏠 Painel</a>
+                <a href="/diario">📓 Diário Emocional</a>
+                <a href="/agendamento" class="ativo">📅 Agendamentos</a>
+                <a href="/telemedicina">💻 Telemedicina</a>
+                <a href="/rede-apoio">🤝 Rede de Apoio</a>
+                <a href="/profissionais">🩺 Profissionais</a>
+            </nav>
+        </aside>
+
+        <main class="conteudo">
+            <h1 class="titulo-pagina">Agenda e Consultas</h1>
+
+            <div class="grid-agendamento">
+                <!-- Card do Calendário Interativo -->
+                <div class="card">
+                    <div class="calendario-header">
+                        <button class="btn-nav" id="btn-prev">&lt;</button>
+                        <h2 id="mes-ano-titulo">Carregando...</h2>
+                        <button class="btn-nav" id="btn-next">&gt;</button>
+                    </div>
+                    <div class="calendario-grid" id="calendario">
+                        <!-- Preenchido via JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Card de Horários e Form de Agendamento -->
+                <div class="card painel-agenda" id="painel-agenda">
+                    <h3 id="titulo-data-selecionada">Selecione um dia no calendário</h3>
+
+                    <div id="horarios-container" class="horarios-grid"></div>
+
+                    <!-- Lista de Consultas já agendadas para o dia clicado -->
+                    <div id="lista-consultas-dia"></div>
+
+                    <!-- Form de Novo Agendamento -->
+                    <div class="form-agendamento" id="formulario" style="display: none;">
+                        <input type="text" id="nome-paciente" placeholder="Nome completo do paciente *">
+                        <input type="tel" id="tel-paciente" placeholder="Telefone de contato">
+                        <textarea id="obs-consulta" rows="2" placeholder="Observações/Sintomas (opcional)"></textarea>
+                        <button type="button" class="btn-confirmar" id="btnConfirmarAgendamento">Confirmar Agendamento</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const calendario = document.getElementById("calendario");
+        let dataAtual = new Date();
+        let diaSelecionadoStr = null; // Guarda YYYY-MM-DD
+        let horarioSelecionado = null;
+        let consultas = [];
+        let profissionalAtual = null;
+
+        const params = new URLSearchParams(window.location.search);
+        const profesionalId = params.get("id");
+
+        const isModoGeral = !profesionalId || profesionalId === "null" || profesionalId === "undefined";
+
+        /* =======================================
+            SINCRONIZADOR COM O DASHBOARD (localStorage)
+        ======================================= */
+        function atualizarLocalStorageParaDashboard() {
+            const compromissosFormatados = {};
+
+            consultas.forEach(c => {
+                const dataLimpa = (c.data_consulta || c.data || c.data_agendamento || "").toString().substring(0, 10);
+                if (!dataLimpa) return;
+
+                if (!compromissosFormatados[dataLimpa]) {
+                    compromissosFormatados[dataLimpa] = [];
+                }
+
+                compromissosFormatados[dataLimpa].push({
+                    titulo: c.profissional_nome || "Consulta Agendada",
+                    horario: c.horario || "",
+                    detalhe: "Paciente: " + (c.paciente_nome || c.paciente || c.usuario || "Não informado")
+                });
+            });
+
+            localStorage.setItem("maia_compromissos", JSON.stringify(compromissosFormatados));
+        }
+
+        /* =======================================
+            INTERPRETADOR DE DISPONIBILIDADE
+        ======================================= */
+        function processarDadosProfissional(prof) {
+            if (!prof || !prof.disponibilidade) return null;
+
+            const mapaDias = { "domingo": 0, "segunda": 1, "terca": 2, "terça": 2, "quarta": 3, "quinta": 4, "sexta": 5, "sabado": 6, "sábado": 6 };
+            let regrasGeradas = {};
+
+            const tempoMatch = prof.tempo ? prof.tempo.match(/\d+/) : null;
+            prof.tempoMinutos = tempoMatch ? parseInt(tempoMatch[0]) : 30;
+
+            const blocos = prof.disponibilidade.toLowerCase().split(';');
+
+            blocos.forEach(bloco => {
+                const horasMatch = bloco.match(/(\d{1,2})(h|:)(\d{2})?/g);
+                if (horasMatch && horasMatch.length >= 2) {
+                    const formatarHora = (h) => {
+                        let limpa = h.replace('h', '');
+                        if (!limpa.includes(':')) limpa += ':00';
+                        return limpa.padStart(5, '0');
+                    };
+
+                    const inicio = formatarHora(horasMatch[0]);
+                    const fim = formatarHora(horasMatch[1]);
+
+                    if (bloco.includes(' a ')) {
+                        const partesTexto = bloco.split(/[\d]/)[0];
+                        const diasNoTexto = partesTexto.split(' a ');
+                        let dInicio = -1, dFim = -1;
+
+                        Object.keys(mapaDias).forEach(nome => {
+                            if (diasNoTexto[0].includes(nome)) dInicio = mapaDias[nome];
+                            if (diasNoTexto[1] && diasNoTexto[1].includes(nome)) dFim = mapaDias[nome];
+                        });
+
+                        if (dInicio !== -1 && dFim !== -1) {
+                            for (let i = dInicio; i <= dFim; i++) { regrasGeradas[i] = { inicio, fim }; }
+                        }
+                    } else {
+                        Object.keys(mapaDias).forEach(nome => {
+                            if (bloco.includes(nome)) { regrasGeradas[mapaDias[nome]] = { inicio, fim }; }
+                        });
+                    }
+                }
+            });
+            return Object.keys(regrasGeradas).length > 0 ? regrasGeradas : null;
+        }
+
+        /* =======================================
+            FUNÇÕES AUXILIARES
+        ======================================= */
+        function ehFeriado(dia, mes, ano) {
+            const feriados = [`1/1/${ano}`, `21/4/${ano}`, `1/5/${ano}`, `7/9/${ano}`, `12/10/${ano}`, `2/11/${ano}`, `15/11/${ano}`, `25/12/${ano}`];
+            return feriados.includes(`${dia}/${mes + 1}/${ano}`);
+        }
+
+        function converterParaMinutos(horaString) {
+            const [horas, minutos] = horaString.split(':').map(Number);
+            return (horas * 60) + minutos;
+        }
+
+        function converterParaHoraString(minutosTotais) {
+            const horas = Math.floor(minutosTotais / 60);
+            const minutos = minutosTotais % 60;
+            return `${horas.toString().padStart(2, '0')}:${minutos.toString().padStart(2, '0')}`;
+        }
+
+        /* =======================================
+            INICIALIZAÇÃO E FETCH
+        ======================================= */
+        function carregarDados() {
+            const emailLogado = localStorage.getItem("usuarioEmail");
+            if (!emailLogado) {
+                console.warn("⚠️ Nenhum usuário logado encontrado no localStorage.");
+                renderCalendario();
+                return;
+            }
+
+            const urlConsultas = `http://localhost:3000/usuario/meus-agendamento/${emailLogado}`;
+
+            if (isModoGeral) {
+                fetch(urlConsultas)
+                    .then(res => res.json())
+                    .then(lista => {
+                        consultas = Array.isArray(lista) ? lista : [];
+                        atualizarLocalStorageParaDashboard();
+                        iniciarTela();
+                    }).catch(err => {
+                        console.error("Erro ao carregar consultas:", err);
+                        iniciarTela();
+                    });
+            } else {
+                Promise.all([
+                    fetch(`http://localhost:3000/profissionais/${profesionalId}`).then(res => res.json()),
+                    fetch(urlConsultas).then(res => res.json())
+                ])
+                .then(([prof, lista]) => {
+                    profissionalAtual = prof;
+                    if (profissionalAtual) {
+                        profissionalAtual.regrasProcessadas = processarDadosProfissional(profissionalAtual);
+                    }
+                    consultas = Array.isArray(lista) ? lista : [];
+                    atualizarLocalStorageParaDashboard();
+                    iniciarTela();
+                }).catch(err => {
+                    console.error("Erro ao carregar dados do profissional/consultas:", err);
+                    iniciarTela();
+                });
+            }
+        }
+
+        function iniciarTela() {
+            renderCalendario();
+            const painel = document.getElementById("painel-agenda");
+            if (painel) painel.style.display = "block";
+        }
+
+        /* =======================================
+            RENDERIZAR CALENDÁRIO
+        ======================================= */
+        function renderCalendario() {
+            if (!calendario) return;
+            calendario.innerHTML = "";
+
+            const mes = dataAtual.getMonth();
+            const ano = dataAtual.getFullYear();
+            const primeiroDia = new Date(ano, mes, 1).getDay();
+            const diasNoMes = new Date(ano, mes + 1, 0).getDate();
+
+            const nomesMeses = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+
+            const elementoTitulo = document.getElementById("mes-ano-titulo");
+            if (elementoTitulo) elementoTitulo.innerText = `${nomesMeses[mes]} ${ano}`;
+
+            ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"].forEach(d => {
+                const el = document.createElement("div");
+                el.innerText = d;
+                el.className = "dia-semana-cabecalho";
+                calendario.appendChild(el);
+            });
+
+            for (let i = 0; i < primeiroDia; i++) calendario.appendChild(document.createElement("div"));
+
+            const hoje = new Date();
+            hoje.setHours(0, 0, 0, 0);
+
+            for (let i = 1; i <= diasNoMes; i++) {
+                const dia = document.createElement("div");
+                dia.classList.add("dia");
+                dia.innerText = i;
+
+                const dataDia = new Date(ano, mes, i);
+                const diaSemana = dataDia.getDay();
+                const dataFormatada = `${ano}-${(mes + 1).toString().padStart(2, '0')}-${i.toString().padStart(2, '0')}`;
+
+                const passado = dataDia < hoje;
+                const feriado = ehFeriado(i, mes, ano);
+                let trabalhaNesteDia = isModoGeral || (profissionalAtual && profissionalAtual.regrasProcessadas && profissionalAtual.regrasProcessadas[diaSemana]);
+
+                if (passado || feriado || !trabalhaNesteDia) {
+                    dia.classList.add("invalido");
+                } else {
+                    dia.classList.add("disponivel");
+
+                    const temConsulta = consultas.some(c => {
+                        const dataLimpa = (c.data || c.data_consulta || "").toString().substring(0, 10);
+                        return dataLimpa === dataFormatada;
+                    });
+
+                    if (temConsulta) {
+                        const marcador = document.createElement("div");
+                        marcador.className = "marcador-consulta";
+                        dia.appendChild(marcador);
+                    }
+                    dia.onclick = () => selecionarDia(dia, dataFormatada, diaSemana);
+                }
+                calendario.appendChild(dia);
+            }
+        }
+
+        /* =======================================
+            SELEÇÃO E HORÁRIOS
+        ======================================= */
+        function selecionarDia(elemento, dataFormatada, diaSemana) {
+            document.querySelectorAll(".dia").forEach(d => d.classList.remove("dia-focado"));
+            elemento.classList.add("dia-focado");
+
+            diaSelecionadoStr = dataFormatada;
+            horarioSelecionado = null;
+
+            const elTituloData = document.getElementById("titulo-data-selecionada");
+            if (elTituloData) elTituloData.innerText = `Agenda: ${dataFormatada.split('-').reverse().join('/')}`;
+
+            if (!isModoGeral) {
+                const elForm = document.getElementById("formulario");
+                if (elForm) elForm.style.display = "flex";
+                gerarBotoesHorario(diaSemana, dataFormatada);
+            }
+            renderizarConsultasDoDia(dataFormatada);
+        }
+
+        function gerarBotoesHorario(diaSemana, dataStr) {
+            const container = document.getElementById("horarios-container");
+            if (!container) return;
+            container.innerHTML = "";
+
+            if (!profissionalAtual || !profissionalAtual.regrasProcessadas) return;
+
+            const regras = profissionalAtual.regrasProcessadas[diaSemana];
+            if (!regras) return;
+
+            const tempo = profissionalAtual.tempoMinutos || 30;
+            let minAtual = converterParaMinutos(regras.inicio);
+            const minFim = converterParaMinutos(regras.fim);
+
+            while (minAtual + tempo <= minFim) {
+                const horaStr = converterParaHoraString(minAtual);
+
+                const ocupado = consultas.some(c => {
+                    const dataConsulta = (c.data || c.data_agendamento || c.data_consulta || "").toString().substring(0, 10);
+                    const horaConsulta = (c.horario || "").toString().substring(0, 5);
+                    return dataConsulta === dataStr && horaConsulta === horaStr;
+                });
+
+                const btn = document.createElement("button");
+                btn.type = "button";
+                btn.innerText = horaStr;
+                btn.className = "btn-horario";
+
+                if (ocupado) {
+                    btn.disabled = true;
+                    btn.classList.add("ocupado");
+                } else {
+                    btn.classList.add("disponivel");
+                    btn.onclick = (e) => {
+                        document.querySelectorAll(".btn-horario").forEach(b => b.classList.remove("selecionado"));
+                        e.target.classList.add("selecionado");
+                        horarioSelecionado = horaStr;
+                    };
+                }
+
+                container.appendChild(btn);
+                minAtual += tempo;
+            }
+        }
+
+        function renderizarConsultasDoDia(dataAlvo) {
+            const listaConsultas = document.getElementById("lista-consultas-dia");
+            if (!listaConsultas) return;
+            listaConsultas.innerHTML = "";
+
+            const consultasNoDia = consultas.filter(c => {
+                const dataLimpa = (c.data || c.data_consulta || "").toString().substring(0, 10);
+                return dataLimpa === dataAlvo;
+            });
+
+            if (consultasNoDia.length > 0) {
+                consultasNoDia.forEach(c => {
+                    const item = document.createElement("div");
+                    item.className = "mini-card-resumo";
+                    item.innerHTML = `
+                        <strong>${c.horario || ''} - ${c.profissional_nome || 'Consulta'}</strong>
+                        <p>Paciente: ${c.paciente_nome || c.paciente || c.usuario || 'Não informado'}</p>
+                        <small style="color: #7f5539;">Clique para ver detalhes</small>
+                    `;
+                    item.onclick = () => {
+                        alert(`DETALHES:\nProfissional: ${c.profissional_nome || 'Equipe Maia'}\nPaciente: ${c.paciente_nome || c.paciente || c.usuario}\nHorário: ${c.horario}`);
+                    };
+                    listaConsultas.appendChild(item);
+                });
+            } else {
+                listaConsultas.innerHTML = "<p style='color: gray; padding: 10px; font-size: 13px;'>Nenhum compromisso marcado nesta data.</p>";
+            }
+        }
+
+        /* =======================================
+            REALIZAR AGENDAMENTO
+        ======================================= */
+        async function realizarAgendamento() {
+            const emailLogado = localStorage.getItem("usuarioEmail");
+
+            if (!diaSelecionadoStr || !horarioSelecionado) {
+                alert("⚠️ Por favor, selecione um dia e um horário no calendário primeiro.");
+                return;
+            }
+
+            const campoNome = document.getElementById("nome-paciente");
+            const campoTelefone = document.getElementById("tel-paciente");
+            const campoObs = document.getElementById("obs-consulta");
+
+            if (!campoNome || !campoNome.value) {
+                alert("⚠️ Digite o nome do paciente.");
+                return;
+            }
+
+            const valorTelefone = campoTelefone ? campoTelefone.value : "";
+            const valorObs = campoObs ? campoObs.value : "";
+
+            const dados = {
+                email: emailLogado,
+                usuario_email: emailLogado,
+                profissional_id: profesionalId,
+                profissional_email: profissionalAtual ? profissionalAtual.email : "",
+                profissional_nome: profissionalAtual ? profissionalAtual.nome : "Equipe Maia",
+                data_consulta: diaSelecionadoStr,
+                horario: horarioSelecionado,
+                paciente_nome: campoNome.value,
+                paciente: campoNome.value,
+                telefone: valorTelefone,
+                paciente_telefone: valorTelefone,
+                endereco: profissionalAtual ? (profissionalAtual.profissional_endereco || "Clínica Maia") : "Clínica Maia",
+                observacoes: valorObs,
+                observacao: valorObs,
+                link_videoconferencia: ""
+            };
+
+            try {
+                const resposta = await fetch("http://localhost:3000/usuario/agendamento", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(dados)
+                });
+
+                const resultado = await resposta.json();
+
+                if (resultado.ok || resposta.ok) {
+                    alert("✅ Consulta agendada com sucesso!");
+
+                    // Adiciona localmente para atualizar o Dashboard na hora
+                    consultas.push(dados);
+                    atualizarLocalStorageParaDashboard();
+
+                    window.location.reload();
+                } else {
+                    alert("❌ Erro do Servidor: " + (resultado.erro || "Falha desconhecida"));
+                }
+            } catch (erro) {
+                console.error("❌ Erro fatal na requisição:", erro);
+                alert("Erro de conexão. O servidor está ligado?");
+            }
+        }
+
+        /* =======================================
+            CONFIGURAÇÃO DOS BOTÕES
+        ======================================= */
+        document.addEventListener("DOMContentLoaded", () => {
+            const btnConfirmar = document.getElementById("btnConfirmarAgendamento");
+            if (btnConfirmar) {
+                btnConfirmar.onclick = (e) => {
+                    e.preventDefault();
+                    realizarAgendamento();
+                };
+            }
+
+            const bPrev = document.getElementById("btn-prev");
+            const bNext = document.getElementById("btn-next");
+
+            if (bPrev) bPrev.onclick = () => { dataAtual.setMonth(dataAtual.getMonth() - 1); renderCalendario(); };
+            if (bNext) bNext.onclick = () => { dataAtual.setMonth(dataAtual.getMonth() + 1); renderCalendario(); };
+
+            carregarDados();
+        });
+    </script>
+</body>
+
+</html>

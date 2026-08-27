@@ -1,6 +1,8 @@
-const express = require("express");
+import express from "express";
+// Importamos todas as funções exportadas do controller (com a extensão .js obrigatória)
+import * as clienteController from "../controller/ClienteController.js";
+
 const router = express.Router();
-const clienteController = require("../controller/ClienteController");
 
 // Middleware para as rotas de API que exigem login (retorna JSON em vez de redirecionar)
 function exigirLoginApi(req, res, next) {
@@ -31,4 +33,5 @@ router.get("/perfil", exigirLoginApi, clienteController.paginaPerfil);
 router.post("/perfil", exigirLoginApi, clienteController.atualizarPerfil);
 router.post("/atualizar-perfil", exigirLoginApi, clienteController.atualizarPerfil);
 
-module.exports = router;
+// ✅ Exportação padrão para funcionar com ES Modules
+export default router;
